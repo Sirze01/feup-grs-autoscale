@@ -4,6 +4,12 @@
 - SSH to VM A using the identity file
 > ssh -i g.rsa theuser@192.168.109.156
 
+- SSH to VM B via VM A from personal PC (repository must be in VM A)
+> ssh -t -i utils/management/keys/gors-2122-2s.rsa theuser@192.168.109.156 ssh -i feup-grs-autoscale/utils/target/keys/gors-2122-2s-target.rsa theuser@192.168.88.101
+
+- SSH to VM C via VM A from personal PC (repository must be in VM A)
+> ssh -t -i utils/management/keys/gors-2122-2s.rsa theuser@192.168.109.156 ssh -i feup-grs-autoscale/utils/target/keys/gors-2122-2s-target.rsa theuser@192.168.88.102
+
 - Add default route on VM B
 > ip route del default
 > ip route add default via 192.168.88.100
