@@ -1,0 +1,87 @@
+version: "3"
+services:
+  router:
+    container_name: router
+    build: ./router
+    cap_add:
+      - NET_ADMIN
+    networks:
+      a_server_network:
+        ipv4_address: 10.0.2.254
+      b_client_network:
+        ipv4_address: 10.0.1.254
+      c_public_network:
+        ipv4_address: 172.31.255.253
+
+  client:
+    container_name: client
+    build: ./netubuntu
+    networks:
+      b_client_network:
+
+  load_balancer:
+    container_name: load_balancer
+    build: ./nginx/loadbalancer
+    volumes:
+      - ./nginx/loadbalancer/logs:/var/log/nginx/
+    networks:
+      a_server_network:
+        ipv4_address: 10.0.2.8
+      d_load_testing_network:
+        ipv4_address: 10.0.3.8
+
+  server:
+    build: ./nginx/server
+    volumes:
+      - ./nginx/server/logs:/var/log/nginx/
+    networks:
+      a_server_network:
+    deploy:
+      replicas: 5
+
+  locust-master:
+    container_name: locust-master
+    image: locustio/locust
+    ports:
+      - 8089:8089
+    volumes:
+      - ./locust/:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://192.168.88.101:8080/whoami
+    networks:
+      c_public_network:
+      d_load_testing_network: 
+  
+  locust-worker:
+    container_name: locust-worker
+    image: locustio/locust
+    volumes:
+      - ./locust/:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host locust-master
+    depends_on:
+      - locust-master
+    networks:
+      d_load_testing_network:
+       
+networks:
+  a_server_network:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 10.0.2.0/24
+  
+  b_client_network:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+          ip_range: 10.0.1.0/24
+
+  c_public_network:
+    ipam:
+      config:
+        - subnet: 172.31.255.0/24
+
+  d_load_testing_network:
+    ipam:
+      config:
+        - subnet: 10.0.3.0/24
