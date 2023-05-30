@@ -38,29 +38,16 @@ services:
       a_server_network:
     deploy:
       replicas: 5
-
-  locust-master:
-    container_name: locust-master
-    image: locustio/locust
-    ports:
-      - 8089:8089
-    volumes:
-      - ./locust/:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --master -H http://192.168.88.101:8080/whoami
-    networks:
-      c_public_network:
-      d_load_testing_network: 
   
   locust-worker:
-    container_name: locust-worker
     image: locustio/locust
     volumes:
       - ./locust/:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --worker --master-host locust-master
-    depends_on:
-      - locust-master
+    command: -f /mnt/locust/locustfile.py --worker --master-host 192.168.88.100
     networks:
       d_load_testing_network:
+    deploy:
+      replicas: 5
        
 networks:
   a_server_network:

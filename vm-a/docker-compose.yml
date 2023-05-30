@@ -1,14 +1,26 @@
 version: "3"
 services:
+  locust-master:
+    container_name: locust-master
+    image: locustio/locust
+    ports:
+      - 8089:8089
+      - 5557:5557
+    volumes:
+      - ./locust/:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://192.168.88.101:8080/whoami
+    networks:
+      load_testing_network:
+
   locust-worker:
-    container_name: locust-worker
     image: locustio/locust
     volumes:
       - ./locust/:/mnt/locust
-    command: -f /mnt/locust/locustfile.py --worker --master-host 192.168.88.102
+    command: -f /mnt/locust/locustfile.py --worker --master-host locust-master
     networks:
       load_testing_network:
+    deploy:
+      replicas: 5
        
 networks:
   load_testing_network:
-    driver: bridge
