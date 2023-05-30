@@ -7,8 +7,8 @@ services:
       - ./locust/:/mnt/locust
     command: -f /mnt/locust/locustfile.py --worker --master-host 192.168.88.102
     networks:
-      management_network:
+      load_testing_network:
        
 networks:
-  management_network:
+  load_testing_network:
     driver: bridge
