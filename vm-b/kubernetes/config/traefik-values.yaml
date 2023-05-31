@@ -1,0 +1,18 @@
+ingressRoute:
+  dashboard:
+    entryPoints: ["traefik", "web", "websecure"]
+
+metrics:
+  prometheus:
+    addRoutersLabels: true
+
+ports:
+  web:
+    nodePort: 32080
+
+  websecure:
+    nodePort: 32443
+
+  metrics:
+    expose: true
+    

@@ -11,6 +11,8 @@ echo   "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/doc
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER
+# For vm-a 
+# sudo iptables -I DOCKER-USER -i eth1 -o eth0 -j ACCEPT
 
 # Install go
 wget https://dl.google.com/go/go1.20.4.linux-amd64.tar.gz
@@ -20,7 +22,7 @@ sudo nano /etc/profile -> add go to path
 # Install kubectl
 sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update
+sudo apt-get updat
 sudo apt-get install -y kubectl
 echo 'source <(kubectl completion bash)' >>~/.bashrc
 
@@ -41,14 +43,55 @@ helm repo add traefik https://traefik.github.io/charts
 helm repo update
 
 # Create cluster
-kind create cluster -n autoscale --config ./vm-b/kind/kind-config.yaml --wait 1m
+kind create cluster --config kind-config.yaml --wait 1m
+## Delete clusters
+# kind delete cluster
 
 # Install metallb
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
 kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=90s
 # Config external ip addresses pool
-kubectl apply -f ./vm-b/kind/metallb-config.yaml
+# docker network inspect -f '{{.IPAM.Config}}' kind
+kubectl apply -f metallb-config.yaml
+
+# Only first time
+#helm show values traefik/traefik > traefik-values.yaml
+# Make necessary changes here
 
 
 # Install traefik
-helm install -f ./vm-b/kind/traefik-values.yaml traefik traefik/traefik
+helm install traefik traefik/traefik --values traefik-values.yaml
+# Update config if needed
+# helm upgrade --install traefik traefik/traefik --values traefik-values.yaml
+
+172.18.255.200:80/dashboard/
+127.0.0.1:8080/dashboard/
+
+# Add keda repo
+# helm repo add kedacore https://kedacore.github.io/charts
+# helm repo update
+
+
+# Install keda
+helm install keda kedacore/keda
+
+
+# Add prometheus repo
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Install prometheus
+helm install prometheus prometheus-community/prometheus --values prometheus-values.yaml
+# Update config if needed
+# helm upgrade --install prometheus prometheus-community/prometheus --values prometheus-values.yaml
+
+# Add grafana repo
+# helm repo add grafana https://grafana.github.io/helm-charts
+# helm repo update
+
+# Install grafana
+helm install grafana grafana/grafana
+
+# Update grafana
+# helm upgrade --install grafana grafana/grafana --values grafana-values.yaml
+
+# Deploy app
+kubectl apply -f whoami.yaml

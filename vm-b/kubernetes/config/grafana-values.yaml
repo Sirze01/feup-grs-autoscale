@@ -1,0 +1,9 @@
+service:
+  type: LoadBalancer
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+adminUser: admin
+adminPassword: strongpassword
