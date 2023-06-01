@@ -79,4 +79,4 @@ spec:
       metadata:
         serverAddress: http://prometheus-server:80
         threshold: '100'
-        query: sum(rate(traefik_service_requests_total{service="default-whoami-web@kubernetes"}[2m])) / sum(kube_deployment_status_replicas_available{deployment="whoami"})
+        query: sum(rate(traefik_service_requests_total{service="default-whoami-web@kubernetes"}[2m])) # / sum(kube_deployment_status_replicas_available{deployment="whoami"})
